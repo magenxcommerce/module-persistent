@@ -8,7 +8,7 @@ namespace Magento\Persistent\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 
-class MakePersistentQuoteGuestObserver implements ObserverInterface
+class SetLoadPersistentQuoteObserver implements ObserverInterface
 {
     /**
      * Customer session
@@ -16,6 +16,13 @@ class MakePersistentQuoteGuestObserver implements ObserverInterface
      * @var \Magento\Customer\Model\Session
      */
     protected $_customerSession;
+
+    /**
+     * Checkout session
+     *
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $_checkoutSession;
 
     /**
      * Persistent session
@@ -32,44 +39,40 @@ class MakePersistentQuoteGuestObserver implements ObserverInterface
     protected $_persistentData = null;
 
     /**
-     * @var \Magento\Persistent\Model\QuoteManager
-     */
-    protected $quoteManager;
-
-    /**
      * @param \Magento\Persistent\Helper\Session $persistentSession
      * @param \Magento\Persistent\Helper\Data $persistentData
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Persistent\Model\QuoteManager $quoteManager
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      */
     public function __construct(
         \Magento\Persistent\Helper\Session $persistentSession,
         \Magento\Persistent\Helper\Data $persistentData,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Persistent\Model\QuoteManager $quoteManager
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->_persistentSession = $persistentSession;
-        $this->_persistentData = $persistentData;
         $this->_customerSession = $customerSession;
-        $this->quoteManager = $quoteManager;
+        $this->_checkoutSession = $checkoutSession;
+        $this->_persistentData = $persistentData;
     }
 
     /**
-     * Make persistent quote to be guest
+     * Set quote to be loaded even if not active
      *
      * @param \Magento\Framework\Event\Observer $observer
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        /** @var $action \Magento\Persistent\Controller\Index */
-        $action = $observer->getEvent()->getControllerAction();
-        if ($action instanceof \Magento\Persistent\Controller\Index) {
-            if ((($this->_persistentSession->isPersistent() && !$this->_customerSession->isLoggedIn())
-                || $this->_persistentData->isShoppingCartPersist())
-            ) {
-                $this->quoteManager->setGuest(true);
-            }
+        if (!(($this->_persistentSession->isPersistent() && !$this->_customerSession->isLoggedIn())
+            && !$this->_persistentData->isShoppingCartPersist()
+        )) {
+            return;
+        }
+
+        if ($this->_checkoutSession) {
+            $this->_checkoutSession->setLoadInactive();
         }
     }
 }

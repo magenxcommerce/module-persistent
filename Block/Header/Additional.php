@@ -5,10 +5,6 @@
  */
 namespace Magento\Persistent\Block\Header;
 
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Persistent\Helper\Data;
-
 /**
  * Remember Me block
  *
@@ -34,37 +30,20 @@ class Additional extends \Magento\Framework\View\Element\Html\Link
     protected $customerRepository;
 
     /**
-     * @var string
-     */
-    protected $_template = 'Magento_Persistent::additional.phtml';
-
-    /**
-     * @var Json
-     */
-    private $jsonSerializer;
-
-    /**
-     * @var Data
-     */
-    private $persistentHelper;
-
-    /**
+     * Constructor
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Customer\Helper\View $customerViewHelper
      * @param \Magento\Persistent\Helper\Session $persistentSessionHelper
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param array $data
-     * @param Json|null $jsonSerializer
-     * @param Data|null $persistentHelper
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Customer\Helper\View $customerViewHelper,
         \Magento\Persistent\Helper\Session $persistentSessionHelper,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
-        array $data = [],
-        Json $jsonSerializer = null,
-        Data $persistentHelper = null
+        array $data = []
     ) {
         $this->isScopePrivate = true;
         $this->_customerViewHelper = $customerViewHelper;
@@ -72,8 +51,6 @@ class Additional extends \Magento\Framework\View\Element\Html\Link
         $this->customerRepository = $customerRepository;
         parent::__construct($context, $data);
         $this->_isScopePrivate = true;
-        $this->jsonSerializer = $jsonSerializer ?: ObjectManager::getInstance()->get(Json::class);
-        $this->persistentHelper = $persistentHelper ?: ObjectManager::getInstance()->get(Data::class);
     }
 
     /**
@@ -87,26 +64,17 @@ class Additional extends \Magento\Framework\View\Element\Html\Link
     }
 
     /**
-     * Get customer id.
-     *
-     * @return int
-     */
-    public function getCustomerId(): int
-    {
-        return $this->_persistentSessionHelper->getSession()->getCustomerId();
-    }
-
-    /**
-     * Get persistent config.
+     * Render additional header html
      *
      * @return string
      */
-    public function getConfig(): string
+    protected function _toHtml()
     {
-        return $this->jsonSerializer->serialize(
-            [
-                'expirationLifetime' => $this->persistentHelper->getLifeTime(),
-            ]
-        );
+        if ($this->_persistentSessionHelper->getSession()->getCustomerId()) {
+            return '<span><a ' . $this->getLinkAttributes() . ' >' . __('Not you?')
+            . '</a></span>';
+        }
+
+        return '';
     }
 }

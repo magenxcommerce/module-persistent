@@ -86,8 +86,13 @@ class Observer
      */
     public function emulateWelcomeBlock($block)
     {
-        $block->setWelcome('&nbsp;');
+        $customerName = $this->_customerViewHelper->getCustomerName(
+            $this->customerRepository->getById($this->_persistentSession->getSession()->getCustomerId())
+        );
 
+        $this->_applyAccountLinksPersistentData();
+        $welcomeMessage = __('Welcome, %1!', $customerName);
+        $block->setWelcome($welcomeMessage);
         return $this;
     }
 
