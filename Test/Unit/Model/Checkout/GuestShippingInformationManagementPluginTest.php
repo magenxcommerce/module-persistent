@@ -38,7 +38,6 @@ class GuestShippingInformationManagementPluginTest extends TestCase
      * @var QuoteManager|MockObject
      */
     private $quoteManager;
-
     /**
      * @var GuestShippingInformationManagementPlugin
      */
@@ -47,7 +46,7 @@ class GuestShippingInformationManagementPluginTest extends TestCase
     /**
      * @inheritDoc
      */
-    protected function setUp(): void
+    protected function setUp()
     {
         parent::setUp();
         $this->persistenceDataHelper = $this->createMock(Data::class);
